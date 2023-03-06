@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RockPaperScissors
 {
@@ -10,19 +9,21 @@ namespace RockPaperScissors
     {
         static void Main(string[] args)
         {
-            int rounds = 10; // number of rounds to play
+            List<string> moves = ReadMovesFromFile("jatek.txt");
+
+            int rounds = moves.Count; // number of rounds to play
             int playerScore = 0;
             int computerScore = 0;
             int ties = 0;
 
             Console.WriteLine("Welcome to Rock, Paper, Scissors!");
             Console.WriteLine("You will be playing against the computer for " + rounds + " rounds.");
-            Console.WriteLine("Please choose rock, paper, or scissors.");
+            Console.WriteLine("Please choose 0-rock, 1-paper, or 2-scissors.");
 
             for (int i = 1; i <= rounds; i++)
             {
                 Console.WriteLine("Round " + i + ":");
-                string playerChoice = GetPlayerChoice();
+                string playerChoice = GetPlayerChoice(moves, i);
                 int computerChoice = GetComputerChoice();
 
                 Console.WriteLine("Computer chooses " + GetChoiceName(computerChoice));
@@ -62,21 +63,50 @@ namespace RockPaperScissors
                 Console.WriteLine("Sorry, you lose!");
             }
             else
-            {
                 Console.WriteLine("It's a tie game!");
-            }
 
             Console.ReadLine();
         }
 
-        static string GetPlayerChoice()
+        static List<string> ReadMovesFromFile(string fileName)
+        {
+            List<string> moves = new List<string>();
+
+            try
+            {
+                using (StreamReader sr = new StreamReader(fileName))
+                {
+                    while (!sr.EndOfStream)
+                    {
+                        string line = sr.ReadLine().Trim();
+
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            string[] parts = line.Split('-');
+                            string move1 = parts[0].Trim().ToLower();
+                            string move2 = parts[1].Trim().ToLower();
+                            moves.Add(move1);
+                            moves.Add(move2);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An error occurred while reading the file: " + ex.Message);
+            }
+
+            return moves;
+        }
+
+        static string GetPlayerChoice(List<string> moves, int round)
         {
             while (true)
             {
                 Console.Write("Enter your choice (rock, paper, scissors): ");
-                string choice = Console.ReadLine();
+                string choice = Console.ReadLine().ToLower().Trim(); // add call to Trim() here
 
-                if (choice == "rock" || choice == "paper" || choice == "scissors")
+                if (moves.Contains(choice))
                 {
                     return choice;
                 }
@@ -85,7 +115,7 @@ namespace RockPaperScissors
             }
         }
 
-        static int GetComputerChoice()
+    static int GetComputerChoice()
         {
             Random random = new Random();
             return random.Next(3);
